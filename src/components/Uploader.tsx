@@ -24,8 +24,48 @@ const Uploader = () => {
     }>
   >([]);
 
-  const uploadFile = (file: File) => {
-    console.log("uploading", file);
+  const uploadFile = async (file: File) => {
+    setFiles((prevFiles) =>
+      prevFiles.map((f) => (f.file === file ? { ...f, uploading: true } : f)),
+    );
+
+    try {
+      const res = await fetch("/api/s3/upload", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          size: file.size,
+        }),
+      });
+
+      if (!res.ok) {
+        toast.error("Failed to get presigned url");
+
+        setFiles((prevFiles) =>
+          prevFiles.map((f) =>
+            f.file === file
+              ? { ...f, uploading: false, progress: 0, error: true }
+              : f,
+          ),
+        );
+
+        return;
+      }
+
+      const { presignedUrl, key } = await res.json();
+    } catch {
+      toast.error("Failed to upload file(s)");
+
+      setFiles((prevFiles) =>
+        prevFiles.map((f) =>
+          f.file === file
+            ? { ...f, uploading: false, progress: 0, error: true }
+            : f,
+        ),
+      );
+    }
   };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
