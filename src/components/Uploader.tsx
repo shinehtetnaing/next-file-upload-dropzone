@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
@@ -180,12 +181,39 @@ const Uploader = () => {
       </Card>
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
-        {files.map((file) => (
-          <div key={file.id}>
-            <img src={file.objectUrl} alt="image" />
-            <p>{file.progress}%</p>
-          </div>
-        ))}
+        {files.map(
+          ({ id, file, uploading, progress, isDeleting, error, objectUrl }) => {
+            return (
+              <div key={id} className="flex flex-col gap-1">
+                <div className="relative aspect-square overflow-hidden rounded-lg">
+                  <img
+                    src={objectUrl}
+                    alt={file.name}
+                    className="h-full w-full object-cover"
+                  />
+
+                  {uploading && !isDeleting && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                      <div className="text-lg font-medium text-white">
+                        {progress}%
+                      </div>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-red-500/50">
+                      <div className="font-medium text-white">Error</div>
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-muted-foreground truncate px-1 text-sm">
+                  {file.name}
+                </p>
+              </div>
+            );
+          },
+        )}
       </div>
     </>
   );
